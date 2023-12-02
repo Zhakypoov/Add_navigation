@@ -39,17 +39,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.lunchtray.datasource.DataSource
 import com.example.lunchtray.ui.AccompanimentMenuScreen
 import com.example.lunchtray.ui.CheckoutScreen
 import com.example.lunchtray.ui.EntreeMenuScreen
 import com.example.lunchtray.ui.OrderViewModel
 import com.example.lunchtray.ui.SideDishMenuScreen
 import com.example.lunchtray.ui.StartOrderScreen
-import javax.sql.DataSource
 
-// TODO: Screen enum
-
-enum class LunchTrayScreen(@StringRes val title: Int){
+enum class LunchTrayScreen(@StringRes val title: Int) {
     Start(title = R.string.app_name),
     Entree(title = R.string.choose_entree),
     SideDish(title = R.string.choose_side_dish),
@@ -57,67 +55,70 @@ enum class LunchTrayScreen(@StringRes val title: Int){
     Checkout(title = R.string.order_checkout)
 }
 
-// TODO: AppBar
-
-
+/**
+ * Composable that displays the topBar and displays back button if back navigation is possible.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LunchTrayAppBar(
-   @StringRes currentScreenTitle: Int,
-   canNavigateBack: Boolean,
-   navigateUp: ()-> Unit,
-   modifier: Modifier = Modifier
-){
+    @StringRes currentScreenTitle: Int,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     CenterAlignedTopAppBar(
-        title = { Text(stringResource(currentScreenTitle))},
+        title = { Text(stringResource(currentScreenTitle)) },
         modifier = modifier,
         navigationIcon = {
-            if(canNavigateBack){
+            if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
                     Icon(
-                       imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.back_button)
                     )
                 }
             }
         }
     )
-
-
 }
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun LunchTrayApp() {
-    // TODO: Create Controller and initialization
+    //Create NavController
     val navController = rememberNavController()
-    // Create ViewModel
+    // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen  = LunchTrayScreen.valueOf(
+    // Get the name of the current screen
+    val currentScreen = LunchTrayScreen.valueOf(
         backStackEntry?.destination?.route ?: LunchTrayScreen.Start.name
     )
-
+    // Create ViewModel
     val viewModel: OrderViewModel = viewModel()
 
     Scaffold(
         topBar = {
-            // TODO: AppBar
             LunchTrayAppBar(
                 currentScreenTitle = currentScreen.title,
-                canNavigateBack =  navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp()}
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = { navController.navigateUp() }
             )
         }
     ) { innerPadding ->
         val uiState by viewModel.uiState.collectAsState()
 
-        // TODO: Navigation host
-        NavHost(navController = navController, startDestination = LunchTrayScreen.Start.name,){
-            composable(route = LunchTrayScreen.Start.name){
+        NavHost(
+            navController = navController,
+            startDestination = LunchTrayScreen.Start.name,
+        ) {
+            composable(route = LunchTrayScreen.Start.name) {
                 StartOrderScreen(
                     onStartOrderButtonClicked = {
-                    navController.navigate(LunchTrayScreen.Entree.name)
-                }, modifier = Modifier.fillMaxSize().padding(innerPadding)
-                    )
+                        navController.navigate(LunchTrayScreen.Entree.name)
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                )
             }
 
             composable(route = LunchTrayScreen.Entree.name) {
@@ -157,6 +158,7 @@ fun LunchTrayApp() {
                         .padding(innerPadding)
                 )
             }
+
             composable(route = LunchTrayScreen.Accompaniment.name) {
                 AccompanimentMenuScreen(
                     options = DataSource.accompanimentMenuItems,
@@ -175,6 +177,7 @@ fun LunchTrayApp() {
                         .padding(innerPadding)
                 )
             }
+
             composable(route = LunchTrayScreen.Checkout.name) {
                 CheckoutScreen(
                     orderUiState = uiState,
@@ -196,8 +199,6 @@ fun LunchTrayApp() {
                         )
                 )
             }
-
+        }
     }
-  }
 }
-
